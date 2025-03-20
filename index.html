@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Score Counter</title>
+    <link rel="stylesheet" href="style.css">
+   
+</head>
+<body>
+
+    <div id="setupScreen" class="setup">
+        <h2>Enter Match Details</h2>
+        <input type="text" id="team1" placeholder="Enter Team 1 Name">
+        <input type="text" id="team2" placeholder="Enter Team 2 Name">
+        <input type="number" id="overs" placeholder="Enter Number of Overs" min="1">
+        <button onclick="setupTeams()">Next</button>
+    </div>
+    
+    <div id="gameScreen" class="container hidden">
+        <h1>Cricket Score Counter</h1>
+        <h2 id="team-names"></h2>
+        <h3>Overs: <span id="total-overs"></span> | Remaining: <span id="remaining-overs"></span></h3>
+        <h3>Balls in Current Over: <span id="balls-count">0</span>/6</h3>
+        <div class="score">Score: <span id="runs">0</span> / <span id="wickets">0</span></div>
+        <h3>Target: <span id="target">--</span></h3>
+        <h3>Current Batsman: <span id="batsman"></span></h3>
+        <h3>Current Bowler: <span id="bowler"></span></h3>
+        <button class="btn-run" onclick="addRuns(1)">+1 Run</button>
+        <button class="btn-run" onclick="addRuns(2)">+2 Runs</button>
+        <button class="btn-run" onclick="addRuns(4)">+4 Runs</button>
+        <button class="btn-run" onclick="addRuns(6)">+6 Runs</button>
+        <button class="btn-extra" onclick="addExtra(1, 'Wide')">Wide Ball (+1)</button>
+        <button class="btn-extra" onclick="addExtra(1, 'No Ball')">No Ball (+1)</button>
+        <button class="btn-wicket" onclick="addWicket()">Wicket</button>
+        <button class="btn-reset" onclick="resetScore()">Reset</button>
+    </div>
+    
+    <script>
+        let team1, team2, battingTeam, bowlingTeam, bowler = "Bowler 1";
+        let runs = 0, wickets = 0, totalOvers, ballsBowled = 0, ballsInOver = 0;
+        let isFirstInnings = true;
+        let firstInningsScore = 0;
+
+        function setupTeams() {
+            team1 = document.getElementById("team1").value;
+            team2 = document.getElementById("team2").value;
+            totalOvers = document.getElementById("overs").value;
+            if (!team1 || !team2 || !totalOvers) {
+                alert("Please enter all match details.");
+                return;
+            }
+            battingTeam = team1;
+            bowlingTeam = team2;
+            document.getElementById("setupScreen").classList.add("hidden");
+            document.getElementById("gameScreen").classList.remove("hidden");
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById("team-names").innerText = battingTeam + " vs " + bowlingTeam;
+            document.getElementById("runs").innerText = runs;
+            document.getElementById("wickets").innerText = wickets;
+            document.getElementById("batsman").innerText = "Player " + (wickets + 1);
+            document.getElementById("bowler").innerText = bowler;
+            document.getElementById("total-overs").innerText = totalOvers;
+            document.getElementById("remaining-overs").innerText = (totalOvers * 6 - ballsBowled) / 6;
+            document.getElementById("target").innerText = isFirstInnings ? "--" : firstInningsScore + 1;
+            document.getElementById("balls-count").innerText = ballsInOver;
+        }
+
+        function addRuns(value) {
+            if (wickets < 10) {
+                runs += value;
+                ballsBowled++;
+                ballsInOver++;
+                checkOver();
+                checkGameStatus();
+                updateDisplay();
+            }
+        }
+
+        function addExtra(value, type) {
+            if (wickets < 10) {
+                runs += value;
+                alert(type + "! Extra run added.");
+                updateDisplay();
+            }
+        }
+
+        function addWicket() {
+            if (wickets < 10) {
+                wickets++;
+                ballsBowled++;
+                ballsInOver++;
+                checkOver();
+                checkGameStatus();
+                updateDisplay();
+            }
+        }
+
+        function checkOver() {
+            if (ballsInOver === 6) {
+                ballsInOver = 0;
+                alert("Over Completed!");
+            }
+        }
+
+        function checkGameStatus() {
+            if (isFirstInnings && (wickets === 10 || ballsBowled >= totalOvers * 6)) {
+                firstInningsScore = runs;
+                runs = 0;
+                wickets = 0;
+                ballsBowled = 0;
+                ballsInOver = 0;
+                isFirstInnings = false;
+                alert(bowlingTeam + " will now bat. Target: " + (firstInningsScore + 1));
+                [battingTeam, bowlingTeam] = [bowlingTeam, battingTeam];
+            } else if (!isFirstInnings) {
+                if (runs > firstInningsScore) {
+                    alert(battingTeam + " wins!");
+                    disableButtons();
+                } else if (ballsBowled >= totalOvers * 6 || wickets === 10) {
+                    alert(bowlingTeam + " wins!");
+                    disableButtons();
+                }
+            }
+        }
+
+        function disableButtons() {
+            document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+        }
+    </script>
+
+</body>
+</html>
